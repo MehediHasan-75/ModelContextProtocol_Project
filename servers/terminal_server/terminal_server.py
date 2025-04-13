@@ -1,5 +1,8 @@
 import os
 import subprocess
+import fnmatch
+from datetime import datetime
+from typing import List, Dict, Union
 from mcp.server.fastmcp import FastMCP
 
 # Initialize FastMCP with terminal name
@@ -9,10 +12,17 @@ mcp = FastMCP("terminal")
 DEFAULT_WORKSPACE = os.path.expanduser('~/mcp/workspace')
 os.makedirs(DEFAULT_WORKSPACE, exist_ok=True)  # Ensure workspace exists
 
+# Utility function
+
+def _validate_path(filename: str) -> str:
+    full_path = os.path.abspath(os.path.join(DEFAULT_WORKSPACE, filename))
+    if not full_path.startswith(DEFAULT_WORKSPACE):
+        raise PermissionError("Access denied: Path outside of workspace.")
+    return full_path
+
 @mcp.tool()
 def run_command(command: str) -> str:
     """
-    Tool: run_command
     Executes a shell command inside the DEFAULT_WORKSPACE directory.
     Returns stdout or stderr.
     """
@@ -30,12 +40,8 @@ def run_command(command: str) -> str:
 
 @mcp.tool()
 def write_file(filename: str, content: str) -> str:
-    """
-    Tool: write_file
-    Writes or creates a file inside DEFAULT_WORKSPACE with the given content.
-    """
     try:
-        full_path = os.path.join(DEFAULT_WORKSPACE, filename)
+        full_path = _validate_path(filename)
         with open(full_path, 'w', encoding='utf-8') as file:
             file.write(content)
         return f"✅ File '{filename}' written successfully."
@@ -44,16 +50,8 @@ def write_file(filename: str, content: str) -> str:
 
 @mcp.tool()
 def edit_file(filename: str, new_content: str) -> str:
-    """
-    Tool: edit_file
-    Overwrites an existing file with new content.
-
-    Inputs:
-    - filename (str): Name of the file to edit (must exist in DEFAULT_WORKSPACE)
-    - new_content (str): The updated content to replace the file with
-    """
     try:
-        full_path = os.path.join(DEFAULT_WORKSPACE, filename)
+        full_path = _validate_path(filename)
         if not os.path.isfile(full_path):
             return f"❌ File '{filename}' does not exist."
         with open(full_path, 'w', encoding='utf-8') as f:
@@ -61,6 +59,65 @@ def edit_file(filename: str, new_content: str) -> str:
         return f"✅ File '{filename}' updated successfully."
     except Exception as e:
         return f"❌ Failed to edit file: {e}"
+
+@mcp.tool()
+def list_files() -> List[str]:
+    try:
+        files = []
+        for root, dirs, filenames in os.walk(DEFAULT_WORKSPACE):
+            for name in filenames:
+                rel_path = os.path.relpath(os.path.join(root, name), DEFAULT_WORKSPACE)
+                files.append(rel_path)
+        return files
+    except Exception as e:
+        return [f"❌ Failed to list files: {e}"]
+
+@mcp.tool()
+def read_file(filename: str) -> str:
+    try:
+        full_path = _validate_path(filename)
+        with open(full_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception as e:
+        return f"❌ Failed to read file: {e}"
+
+@mcp.tool()
+def delete_file(filename: str) -> str:
+    try:
+        full_path = _validate_path(filename)
+        os.remove(full_path)
+        return f"✅ File '{filename}' deleted successfully."
+    except Exception as e:
+        return f"❌ Failed to delete file: {e}"
+
+@mcp.tool()
+def get_file_info(filename: str) -> Dict[str, Union[str, int]]:
+    try:
+        full_path = _validate_path(filename)
+        stat = os.stat(full_path)
+        return {
+            "size": stat.st_size,
+            "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            "permissions": oct(stat.st_mode)[-3:],
+            "is_file": os.path.isfile(full_path),
+            "is_directory": os.path.isdir(full_path)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@mcp.tool()
+def search_files(pattern: str) -> List[str]:
+    try:
+        matched = []
+        for root, _, files in os.walk(DEFAULT_WORKSPACE):
+            for f in files:
+                rel_path = os.path.relpath(os.path.join(root, f), DEFAULT_WORKSPACE)
+                if fnmatch.fnmatch(rel_path, pattern):
+                    matched.append(rel_path)
+        return matched
+    except Exception as e:
+        return [f"❌ Error: {e}"]
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
