@@ -1,0 +1,47 @@
+{
+    "mcpServers": {
+        "terminal_server": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "--init",
+                "-e",
+                "DOCKER_CONTAINER=true",
+                "-v",
+                "/home/mehedi/mcp/workspace:/root/mcp/workspace",
+                "terminal_server_docker"
+            ]
+        },
+        "weather_server": {
+            "command": "python",
+            "args": [
+                "/home/mehedi/mcp/servers/weather_server/weather.py"
+            ]
+        },
+        "fetch": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "mcp_fetch_server_test"
+            ]
+        },
+        "brave-search": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "BRAVE_API_KEY=",
+                "mcp/brave-search"
+            ],
+            "env": {
+                "BRAVE_API_KEY": ""
+            }
+        }
+    }
+}

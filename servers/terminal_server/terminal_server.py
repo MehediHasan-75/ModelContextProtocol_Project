@@ -1,123 +1,145 @@
+#!/usr/bin/env python3
+
 import os
-import subprocess
+import asyncio
+import aiofiles
+import aiofiles.os
 import fnmatch
+import json
 from datetime import datetime
 from typing import List, Dict, Union
 from mcp.server.fastmcp import FastMCP
 
-# Initialize FastMCP with terminal name
-mcp = FastMCP("terminal")
+# Initialize MCP server
+mcp = FastMCP("secure-filesystem-server")
 
-# Set the default workspace path
-DEFAULT_WORKSPACE = os.path.expanduser('~/mcp/workspace')
-os.makedirs(DEFAULT_WORKSPACE, exist_ok=True)  # Ensure workspace exists
+# ✅ Directly define allowed directories here
+allowed_directories: List[str] = [os.path.expanduser("~/mcp/workspace")]
 
-# Utility function
+def normalize_path(p: str) -> str:
+    return os.path.normpath(os.path.abspath(os.path.expanduser(p)))
 
-def _validate_path(filename: str) -> str:
-    full_path = os.path.abspath(os.path.join(DEFAULT_WORKSPACE, filename))
-    if not full_path.startswith(DEFAULT_WORKSPACE):
-        raise PermissionError("Access denied: Path outside of workspace.")
-    return full_path
+def is_within_allowed(path: str) -> bool:
+    return any(os.path.commonpath([path, ad]) == ad for ad in allowed_directories)
 
-@mcp.tool()
-def run_command(command: str) -> str:
-    """
-    Executes a shell command inside the DEFAULT_WORKSPACE directory.
-    Returns stdout or stderr.
-    """
-    try:
-        result = subprocess.run(
-            command,
-            shell=True,
-            cwd=DEFAULT_WORKSPACE,
-            capture_output=True,
-            text=True
-        )
-        return result.stdout if result.stdout else result.stderr
-    except Exception as e:
-        return str(e)
+async def validate_path(requested_path: str) -> str:
+    path = normalize_path(requested_path)
+    if not is_within_allowed(path):
+        raise PermissionError(f"Access denied: {path} is outside allowed directories.")
+    return path
 
 @mcp.tool()
-def write_file(filename: str, content: str) -> str:
-    try:
-        full_path = _validate_path(filename)
-        with open(full_path, 'w', encoding='utf-8') as file:
-            file.write(content)
-        return f"✅ File '{filename}' written successfully."
-    except Exception as e:
-        return f"❌ Failed to write file: {e}"
+async def list_allowed_directories() -> List[str]:
+    return allowed_directories
 
 @mcp.tool()
-def edit_file(filename: str, new_content: str) -> str:
-    try:
-        full_path = _validate_path(filename)
-        if not os.path.isfile(full_path):
-            return f"❌ File '{filename}' does not exist."
-        with open(full_path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-        return f"✅ File '{filename}' updated successfully."
-    except Exception as e:
-        return f"❌ Failed to edit file: {e}"
+async def read_file(path: str) -> str:
+    valid_path = await validate_path(path)
+    async with aiofiles.open(valid_path, mode='r', encoding='utf-8') as f:
+        return await f.read()
 
 @mcp.tool()
-def list_files() -> List[str]:
-    try:
-        files = []
-        for root, dirs, filenames in os.walk(DEFAULT_WORKSPACE):
-            for name in filenames:
-                rel_path = os.path.relpath(os.path.join(root, name), DEFAULT_WORKSPACE)
-                files.append(rel_path)
-        return files
-    except Exception as e:
-        return [f"❌ Failed to list files: {e}"]
+async def write_file(path: str, content: str) -> str:
+    valid_path = await validate_path(path)
+    async with aiofiles.open(valid_path, mode='w', encoding='utf-8') as f:
+        await f.write(content)
+    return f"Successfully wrote to {path}"
 
 @mcp.tool()
-def read_file(filename: str) -> str:
-    try:
-        full_path = _validate_path(filename)
-        with open(full_path, 'r', encoding='utf-8') as f:
-            return f.read()
-    except Exception as e:
-        return f"❌ Failed to read file: {e}"
+async def edit_file(path: str, edits: List[Dict[str, str]], dry_run: bool = False) -> str:
+    valid_path = await validate_path(path)
+    async with aiofiles.open(valid_path, mode='r', encoding='utf-8') as f:
+        content = await f.read()
+
+    original_lines = content.splitlines()
+    modified_lines = original_lines.copy()
+
+    for edit in edits:
+        old = edit['oldText']
+        new = edit['newText']
+        try:
+            index = modified_lines.index(old)
+            modified_lines[index] = new
+        except ValueError:
+            raise ValueError(f"Text to replace not found: {old}")
+
+    diff = '\n'.join(modified_lines)
+    if not dry_run:
+        async with aiofiles.open(valid_path, mode='w', encoding='utf-8') as f:
+            await f.write('\n'.join(modified_lines))
+    return diff
 
 @mcp.tool()
-def delete_file(filename: str) -> str:
-    try:
-        full_path = _validate_path(filename)
-        os.remove(full_path)
-        return f"✅ File '{filename}' deleted successfully."
-    except Exception as e:
-        return f"❌ Failed to delete file: {e}"
+async def create_directory(path: str) -> str:
+    valid_path = await validate_path(path)
+    await aiofiles.os.makedirs(valid_path, exist_ok=True)
+    return f"Successfully created directory {path}"
 
 @mcp.tool()
-def get_file_info(filename: str) -> Dict[str, Union[str, int]]:
-    try:
-        full_path = _validate_path(filename)
-        stat = os.stat(full_path)
-        return {
-            "size": stat.st_size,
-            "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "permissions": oct(stat.st_mode)[-3:],
-            "is_file": os.path.isfile(full_path),
-            "is_directory": os.path.isdir(full_path)
-        }
-    except Exception as e:
-        return {"error": str(e)}
+async def list_directory(path: str) -> List[str]:
+    valid_path = await validate_path(path)
+    entries = await aiofiles.os.listdir(valid_path)
+    result = []
+    for entry in entries:
+        full_path = os.path.join(valid_path, entry)
+        if await aiofiles.os.path.isdir(full_path):
+            result.append(f"[DIR] {entry}")
+        else:
+            result.append(f"[FILE] {entry}")
+    return result
 
 @mcp.tool()
-def search_files(pattern: str) -> List[str]:
-    try:
-        matched = []
-        for root, _, files in os.walk(DEFAULT_WORKSPACE):
-            for f in files:
-                rel_path = os.path.relpath(os.path.join(root, f), DEFAULT_WORKSPACE)
-                if fnmatch.fnmatch(rel_path, pattern):
-                    matched.append(rel_path)
-        return matched
-    except Exception as e:
-        return [f"❌ Error: {e}"]
+async def directory_tree(path: str) -> Dict[str, Union[str, List]]:
+    valid_path = await validate_path(path)
+
+    async def build_tree(current_path: str) -> Dict[str, Union[str, List]]:
+        tree = {"name": os.path.basename(current_path), "type": "directory", "children": []}
+        entries = await aiofiles.os.listdir(current_path)
+        for entry in entries:
+            full_path = os.path.join(current_path, entry)
+            if await aiofiles.os.path.isdir(full_path):
+                subtree = await build_tree(full_path)
+                tree["children"].append(subtree)
+            else:
+                tree["children"].append({"name": entry, "type": "file"})
+        return tree
+
+    return await build_tree(valid_path)
+
+@mcp.tool()
+async def move_file(source: str, destination: str) -> str:
+    valid_source = await validate_path(source)
+    valid_destination = await validate_path(destination)
+    await aiofiles.os.rename(valid_source, valid_destination)
+    return f"Successfully moved {source} to {destination}"
+
+@mcp.tool()
+async def search_files(path: str, pattern: str, exclude_patterns: List[str] = []) -> List[str]:
+    valid_path = await validate_path(path)
+    matches = []
+
+    for root, dirs, files in os.walk(valid_path):
+        rel_root = os.path.relpath(root, valid_path)
+        if any(fnmatch.fnmatch(rel_root, pat) for pat in exclude_patterns):
+            continue
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                matches.append(os.path.join(root, name))
+    return matches
+
+@mcp.tool()
+async def get_file_info(path: str) -> Dict[str, Union[str, int]]:
+    valid_path = await validate_path(path)
+    stat = await aiofiles.os.stat(valid_path)
+    return {
+        "size": stat.st_size,
+        "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+        "accessed": datetime.fromtimestamp(stat.st_atime).isoformat(),
+        "is_directory": await aiofiles.os.path.isdir(valid_path),
+        "is_file": await aiofiles.os.path.isfile(valid_path),
+        "permissions": oct(stat.st_mode)[-3:]
+    }
 
 if __name__ == "__main__":
-    mcp.run(transport='stdio')
+    mcp.run()

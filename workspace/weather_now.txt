@@ -1,0 +1,169 @@
+Weather forecast for Los Angeles, California:
+Overnight:
+Temperature: 52°F
+Wind: 0 to 5 mph WSW
+Forecast: A slight chance of rain showers before 5am. Mostly cloudy, with a low around 52. West southwest wind 0 to 5 mph. Chance of precipitation is 20%.
+
+---
+
+Friday:
+Temperature: 65°F
+Wind: 0 to 10 mph SW
+Forecast: Mostly sunny, with a high near 65. Southwest wind 0 to 10 mph.
+
+---
+
+Friday Night:
+Temperature: 50°F
+Wind: 0 to 10 mph WSW
+Forecast: Mostly clear, with a low around 50. West southwest wind 0 to 10 mph.
+
+---
+
+Saturday:
+Temperature: 72°F
+Wind: 0 to 15 mph SW
+Forecast: Sunny, with a high near 72. Southwest wind 0 to 15 mph, with gusts as high as 20 mph.
+
+---
+
+Saturday Night:
+Temperature: 53°F
+Wind: 0 to 15 mph S
+Forecast: Mostly clear, with a low around 53. South wind 0 to 15 mph, with gusts as high as 20 mph.
+
+Weather forecast for Houston, Texas:
+Overnight:
+Temperature: 71°F
+Wind: 10 mph S
+Forecast: Mostly cloudy, with a low around 71. South wind around 10 mph, with gusts as high as 25 mph.
+
+---
+
+Friday:
+Temperature: 87°F
+Wind: 10 to 15 mph S
+Forecast: Partly sunny, with a high near 87. South wind 10 to 15 mph, with gusts as high as 30 mph.
+
+---
+
+Friday Night:
+Temperature: 72°F
+Wind: 10 to 15 mph SE
+Forecast: Mostly cloudy, with a low around 72. Southeast wind 10 to 15 mph, with gusts as high as 30 mph.
+
+---
+
+Saturday:
+Temperature: 85°F
+Wind: 10 to 15 mph SE
+Forecast: Mostly cloudy, with a high near 85. Southeast wind 10 to 15 mph, with gusts as high as 25 mph.
+
+---
+
+Saturday Night:
+Temperature: 73°F
+Wind: 15 mph SE
+Forecast: Cloudy, with a low around 73. Southeast wind around 15 mph, with gusts as high as 30 mph.
+
+Weather forecast for Tampa, Florida:
+Overnight:
+Temperature: 63°F
+Wind: 5 mph E
+Forecast: Clear, with a low around 63. East wind around 5 mph.
+
+---
+
+Friday:
+Temperature: 90°F
+Wind: 5 to 9 mph E
+Forecast: Sunny, with a high near 90. East wind 5 to 9 mph.
+
+---
+
+Friday Night:
+Temperature: 65°F
+Wind: 6 to 9 mph E
+Forecast: Clear, with a low around 65. East wind 6 to 9 mph.
+
+---
+
+Saturday:
+Temperature: 90°F
+Wind: 6 to 12 mph E
+Forecast: Sunny, with a high near 90. East wind 6 to 12 mph.
+
+---
+
+Saturday Night:
+Temperature: 66°F
+Wind: 6 to 10 mph E
+Forecast: Mostly clear, with a low around 66. East wind 6 to 10 mph.
+
+Weather forecast for New York, New York:
+Overnight:
+Temperature: 46°F
+Wind: 2 mph S
+Forecast: Mostly clear, with a low around 46. South wind around 2 mph.
+
+---
+
+Friday:
+Temperature: 64°F
+Wind: 1 to 18 mph S
+Forecast: Mostly sunny. High near 64, with temperatures falling to around 62 in the afternoon. South wind 1 to 18 mph, with gusts as high as 30 mph.
+
+---
+
+Friday Night:
+Temperature: 57°F
+Wind: 12 to 17 mph S
+Forecast: Mostly cloudy. Low around 57, with temperatures rising to around 59 overnight. South wind 12 to 17 mph, with gusts as high as 29 mph.
+
+---
+
+Saturday:
+Temperature: 78°F
+Wind: 12 to 21 mph SW
+Forecast: Partly sunny, with a high near 78. Southwest wind 12 to 21 mph, with gusts as high as 32 mph.
+
+---
+
+Saturday Night:
+Temperature: 57°F
+Wind: 15 to 18 mph W
+Forecast: A chance of rain showers between 8pm and 2am. Mostly cloudy. Low around 57, with temperatures rising to around 61 overnight. West wind 15 to 18 mph. Chance of precipitation is 30%.
+
+Weather forecast for Philadelphia, Pennsylvania:
+Overnight:
+Temperature: 40°F
+Wind: 5 mph SW
+Forecast: Mostly clear, with a low around 40. Southwest wind around 5 mph.
+
+---
+
+Friday:
+Temperature: 72°F
+Wind: 5 to 15 mph S
+Forecast: Sunny, with a high near 72. South wind 5 to 15 mph, with gusts as high as 30 mph.
+
+---
+
+Friday Night:
+Temperature: 59°F
+Wind: 10 to 15 mph S
+Forecast: Partly cloudy, with a low around 59. South wind 10 to 15 mph, with gusts as high as 30 mph.
+
+---
+
+Saturday:
+Temperature: 81°F
+Wind: 15 mph SW
+Forecast: Partly sunny, with a high near 81. Southwest wind around 15 mph, with gusts as high as 30 mph.
+
+---
+
+Saturday Night:
+Temperature: 56°F
+Wind: 10 to 15 mph W
+Forecast: Partly cloudy, with a low around 56. West wind 10 to 15 mph, with gusts as high as 25 mph.
